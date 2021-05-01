@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="libs/radar/radar.css">
+    <link rel="stylesheet" href="libs/bootstrap/css/bootstrap.min.css">
+    <title>Radar</title>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row m-5">
+            <div class="col-sm">
+                <div class="row">
+                    <div class="col-sm-1 my-auto">270</div>
+                    <div class="col-sm-10">
+                        <div class="text-center mb-4">0</div>
+                        <div id="radar" class="radar"></div>
+                        <div class="text-center mt-4">180</div>
+                    </div>
+                    <div class="col-sm-1 my-auto">90</div>
+                </div>
+            </div>
+            <div class="col-sm">
+                <div class="row">
+                    <div class="col-sm">
+                        <div class="controls">
+                            <div class="mb-1">Управление</div>
+                            <button id="pause-btn" type="button" class="btn btn-primary">Пауза</button>
+                            <button id="stop-btn" type="button" class="btn btn-danger">Стоп</button>
+                        </div>
+
+                        <div class="indications mt-3">
+                            <div class="mb-1">Индикация</div>
+                            <div>
+                                <div class="form-check ind-btn">
+                                    <input class="form-check-input" type="checkbox" value="" id="aimNumbers">
+                                    <label class="form-check-label" for="aimNumbers">
+                                        Номера целей
+                                    </label>
+                                </div>
+                                <div class="form-check ind-btn">
+                                    <input class="form-check-input" type="checkbox" value="" id="azimuth">
+                                    <label class="form-check-label" for="azimuth">
+                                        Азимут
+                                    </label>
+                                </div>
+                                <div class="form-check ind-btn">
+                                    <input class="form-check-input" type="checkbox" value="" id="height">
+                                    <label class="form-check-label" for="height">
+                                        Высота
+                                    </label>
+                                </div>
+                                <div class="form-check ind-btn">
+                                    <input class="form-check-input" type="checkbox" value="" id="distance">
+                                    <label class="form-check-label" for="distance">
+                                        Дальность
+                                    </label>
+                                </div>
+                                <div class="form-check ind-btn">
+                                    <input class="form-check-input" type="checkbox" value="" id="formular">
+                                    <label class="form-check-label" for="formular">
+                                        Формуляр
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm">
+                        <div class="scale">
+                            <div class="mb-1">Масштаб</div>
+                            <div>
+                                <div class="form-check">
+                                    <input class="form-check-input" name="scale" type="radio" value="" id="scale50"
+                                        checked>
+                                    <label class="form-check-label" for="scale50">
+                                        50
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" name="scale" type="radio" value="" id="scale100">
+                                    <label class="form-check-label" for="scale100">
+                                        100
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" name="scale" type="radio" value="" id="scale150">
+                                    <label class="form-check-label" for="scale150">
+                                        150
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="speed mt-3">
+                            <div class="mb-1">Скорость</div>
+                            <div>
+                                <div class="form-check">
+                                    <input class="form-check-input" name="speed" type="radio" value="" id="speed6">
+                                    <label class="form-check-label" for="speed6">
+                                        6 об/мин
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" name="speed" type="radio" value="" id="speed12"
+                                        checked>
+                                    <label class="form-check-label" for="speed12">
+                                        12 об/мин
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <table id="formular-table" class="table" style="margin-top: 2em; display: none">
+                    <tr></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="libs/jquery/jquery-3.6.0.min.js"></script>
+    <script src="libs/underscore/underscore-umd-min.js"></script>
+    <script src="libs/bootstrap/js/bootstrap.min.js"></script>
+    <script src="libs/radar/radar.js"></script>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
