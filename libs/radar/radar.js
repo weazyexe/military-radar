@@ -9,6 +9,8 @@ Radar = function (container) {
   this.createSweepIndicator();
 };
 
+let currentlyAnimatedPoints = {};
+
 // creates the sweep indicators
 Radar.prototype.createSweepIndicator = function () {
   var that = this;
@@ -119,20 +121,23 @@ Radar.prototype.start = function () {
   var that = this;
   var indicators = that.container.find(".indicator");
 
-  if (indicators.length === 0) {
-    indicators = that.container.find(".indicator-stopped");
-  }
-
   var points = that.container.find(".point");
   var minDeg = that.getIndicatorAngle(indicators.last());
   var maxDeg = that.getIndicatorAngle(indicators.first());
 
   // find points that are within the sweep range
-  _.each(points, function (point) {
+  _.each(points, function (point, index) {
     var deg = $(point).attr("data-angle");
 
     if ((deg > minDeg && deg < maxDeg)) {
+      if (!currentlyAnimatedPoints[index]) {
+        currentlyAnimatedPoints[index] = true;
+      }
       $(point).stop().fadeTo(0, 1).fadeTo(1700, 0.4);
+    }
+
+    if (currentlyAnimatedPoints[index] && $(point).css("opacity") === "0.4") {
+      currentlyAnimatedPoints[index] = undefined;
     }
   });
 
@@ -184,6 +189,7 @@ Radar.prototype.updatePoints = function (points) {
     base.createDistances = function(max) {
       this.radar.createDistances(max);
     };
+    base.currentlyAnimatedPoints = currentlyAnimatedPoints;
 
     return base;
   };

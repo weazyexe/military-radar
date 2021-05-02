@@ -198,14 +198,25 @@ async function movePoints() {
     while (true) {
         // берем следующие координаты для каждой точки
         // index - номер точки в массиве
-        currentPoints = currentPoints.map((it, index) => ({
-            ...it,
-            X: coords[index][currentCoords].X,
-            Y: coords[index][currentCoords].Y
-        }));
+        const newPoints = [];
+        let index = 0;
+        $(".point").each(function () {
+            if (findRadar().currentlyAnimatedPoints[index]) {
+                newPoints.push({
+                    ...currentPoints[index],
+                    X: coords[index][currentCoords].X,
+                    Y: coords[index][currentCoords].Y
+                });
+                // alreadyMovedPoints[index] = true;
+            } else {
+                newPoints.push(currentPoints[index]);
+            }
+            index++;
+        });
+        currentPoints = newPoints;
         
-        // чтобы точки двигались не так быстро, спим одну секунду
-        await sleep(1000);
+        // чтобы точки двигались не так быстро, спим какое-то кол-во мс
+        await sleep(200);
 
         // для пауз и стопа не надо ниче отображать
         if (!stopped && !paused) {
