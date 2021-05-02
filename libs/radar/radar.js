@@ -11,6 +11,10 @@ Radar = function (container) {
 
 let currentlyAnimatedPoints = {};
 
+function random(max) {
+  return Math.round(Math.random() * max);
+}
+
 // creates the sweep indicators
 Radar.prototype.createSweepIndicator = function () {
   var that = this;
@@ -87,6 +91,8 @@ Radar.prototype.createDistances = function (max) {
       ]);
     }
   }
+
+  that.drawBorder(max);
 }
 
 // creates the x/y axis lines
@@ -114,6 +120,33 @@ Radar.prototype.getIndicatorAngle = function (obj) {
     angle = ~~(-arctan / (Math.PI / 180) + 180);
   }
   return (angle < 0) ? angle += 360 : angle;
+};
+
+Radar.prototype.drawBorder = function(coord) {
+  var that = this;
+  $("#borderCanvas").remove();
+  that.container.append("<canvas id=\"borderCanvas\" style=\"width: 100%; height: 100%\"></canvas>")
+  const canvas = $("#borderCanvas")[0];
+  const ctx = canvas.getContext("2d");
+
+  if (coord === 150) {
+    coord = 120;
+  }
+
+  let curY = 0;
+  let maxSpread = 10;
+  ctx.moveTo(coord, 0);
+  for (let i = 0; i < 5; i++) {
+    const multiplier = i % 2 ? 1 : -1;
+    curY += 30;
+    const x = coord + multiplier * random(maxSpread);
+    const y = curY;
+    ctx.lineTo(x, y);
+    ctx.moveTo(x, y);
+  }
+
+  ctx.strokeStyle = '#ff0000';
+  ctx.stroke();
 };
 
 // starts the radar

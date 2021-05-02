@@ -314,19 +314,19 @@ $("#stop-btn").click(function () {
 // клик на масштаб 50
 $("#scale50").click(function () {
     shift = 0;
-    findRadar().createDistances(scale);
+    findRadar().createDistances(50);
 });
 
 // клик на масштаб 100
 $("#scale100").click(function () {
     shift = 50;
-    findRadar().createDistances(scale);
+    findRadar().createDistances(100);
 });
 
 // клик на масштаб 150
 $("#scale150").click(function () {
     shift = 100;
-    findRadar().createDistances(scale);
+    findRadar().createDistances(150);
 });
 
 // клик на скорость 6
