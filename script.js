@@ -2,15 +2,16 @@ let radar = null;   // переменная с радаром
 let stopped = false; // статус радара (остановлен, работает)
 let paused = false; // статус радара (на паузе, работает)
 let scale = 50; // масштаб радара
+let shift = 0;  // расстояние сдвига точек, чтобы их центровать при масштабировании
 
 let currentCoords = 0;  // текущие координаты для точек
 
 // дефолтные координаты точек
 let defaultPoints = [
-    { X: 100.73834818019053, Y: 80.133526305855796, id: 1, height: 4.2 },
-    { X: 312.04449004559928, Y: 289.090547816002868, id: 2, height: 8 },
-    { X: 145.450948245470364, Y: 312.23568471317653, id: 3, height: 2 },
-    { X: 318.5435234425365, Y: 89.462374232534, id: 4, height: 5.55 }
+    { X: 100.73834818019053, Y: 80.133526305855796, id: 1, height: 4.2, status: true },
+    { X: 312.04449004559928, Y: 289.090547816002868, id: 2, height: 8, status: true },
+    { X: 145.450948245470364, Y: 312.23568471317653, id: 3, height: 2, status: false },
+    { X: 318.5435234425365, Y: 89.462374232534, id: 4, height: 5.55, status: false }
 ];
 
 let currentPoints = defaultPoints;
@@ -37,6 +38,19 @@ function getDenormalizedPoints(points) {
         Y: ($("#radar").height() * it.Y) / (scale * 2)
     }));
 }
+
+// пересчет и перерисовка точек по новому масштабу
+function calculateScale(points) {
+    scale = 50;
+    let newPoints = getNormalizedPoints(points)
+        .map(it => ({ ...it, X: it.X + shift, Y: it.Y + shift }));
+
+    scale = scale + shift;
+    newPoints = getDenormalizedPoints(newPoints);
+
+    return newPoints;
+}
+
 
 // получить объект радара
 // при первом запуске функции ищет радар на странице и возвращает его как результат функции
@@ -83,7 +97,8 @@ function setPointsInfo() {
             { title: "N", checked: $("#aimNumbers").is(":checked"), value: point.id },
             { title: "B", checked: $("#azimuth").is(":checked"), value: deg },
             { title: "H", checked: $("#height").is(":checked"), value: point.height },
-            { title: "D", checked: $("#distance").is(":checked"), value: distance }
+            { title: "D", checked: $("#distance").is(":checked"), value: distance },            
+            { title: "S", checked: $("#status").is(":checked"), value: point.status ? "Свой" : "Чужой" }
         ].filter(it => it.checked); // если параметр отключен - фильтруем его и не отображаем в итоге
 
         // формируем из параметров блок html, который поместится рядом с точкой
@@ -121,17 +136,6 @@ function calculateDistance(x, y) {
     return Math.round(distance);
 }
 
-// пересчет и перерисовка точек по новому масштабу
-function calculateScale(shiftX, points) {
-    scale = 50;
-    let normalizedPoints = getNormalizedPoints(points)
-        .map(it => ({ ...it, X: it.X + shiftX, Y: it.Y + shiftX }));
-
-    scale = scale + shiftX;
-    currentPoints = getDenormalizedPoints(normalizedPoints);
-    findRadar().updatePoints(currentPoints);
-}
-
 // рендер таблицы формуляра
 function renderFormular(checked) {
     $("#formular-table .point-formular").remove();
@@ -144,8 +148,9 @@ function renderFormular(checked) {
             const point = currentPoints[i++];   // текущая точка (данные в js)
             const deg = $(this).attr("data-angle");   // угол точки
             const distance = calculateDistance(point.X, point.Y); // расстояние от точки до центра
+            const status = point.status ? "Свой" : "Чужой"; // статус объекта
 
-            const row = `<tr class="point-formular"><td>N = ${point.id}</td><td>B = ${deg}</td><td>H = ${point.height}</td><td>D = ${distance}</td></tr>`;
+            const row = `<tr class="point-formular"><td>N = ${point.id}</td><td>B = ${deg}</td><td>H = ${point.height}</td><td>D = ${distance}</td><td>S = ${status}</td></tr>`;
             rows.push(row);
         });
 
@@ -207,20 +212,22 @@ async function movePoints() {
                     X: coords[index][currentCoords].X,
                     Y: coords[index][currentCoords].Y
                 });
-                // alreadyMovedPoints[index] = true;
             } else {
-                newPoints.push(currentPoints[index]);
+                newPoints.push({
+                    ...currentPoints[index],
+                    X: coords[index][0].X,
+                    Y: coords[index][0].Y
+                });
             }
             index++;
         });
-        currentPoints = newPoints;
         
+        currentPoints = calculateScale(newPoints);
         // чтобы точки двигались не так быстро, спим какое-то кол-во мс
-        await sleep(200);
+        await sleep(150);
 
         // для пауз и стопа не надо ниче отображать
         if (!stopped && !paused) {
-            calculateScale(scale - 50, currentPoints)
             findRadar().updatePoints(currentPoints);
             setPointsInfo();
             renderFormular($("#formular").is(":checked"));
@@ -306,25 +313,19 @@ $("#stop-btn").click(function () {
 
 // клик на масштаб 50
 $("#scale50").click(function () {
-    calculateScale(0, currentPoints);
-    setPointsInfo();
-    renderFormular($("#formular").is(":checked"));
+    shift = 0;
     findRadar().createDistances(scale);
 });
 
 // клик на масштаб 100
 $("#scale100").click(function () {
-    calculateScale(50, currentPoints);
-    setPointsInfo();
-    renderFormular($("#formular").is(":checked"));
+    shift = 50;
     findRadar().createDistances(scale);
 });
 
 // клик на масштаб 150
 $("#scale150").click(function () {
-    calculateScale(100, currentPoints);
-    setPointsInfo();
-    renderFormular($("#formular").is(":checked"));
+    shift = 100;
     findRadar().createDistances(scale);
 });
 
