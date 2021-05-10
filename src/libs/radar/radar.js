@@ -9,7 +9,8 @@ Radar = function (container) {
   this.createSweepIndicator();
 };
 
-let currentlyAnimatedPoints = {};
+let lastIndex;
+let updateCallback;
 
 function random(max) {
   return Math.round(Math.random() * max);
@@ -163,14 +164,11 @@ Radar.prototype.start = function () {
     var deg = $(point).attr("data-angle");
 
     if ((deg > minDeg && deg < maxDeg)) {
-      if (!currentlyAnimatedPoints[index]) {
-        currentlyAnimatedPoints[index] = true;
+      if (index != lastIndex && deg > maxDeg - 30) {
+        lastIndex = index;
+        updateCallback(index);
       }
       $(point).stop().fadeTo(0, 1).fadeTo(1700, 0.4);
-    }
-
-    if (currentlyAnimatedPoints[index] && $(point).css("opacity") === "0.4") {
-      currentlyAnimatedPoints[index] = undefined;
     }
   });
 
@@ -222,7 +220,9 @@ Radar.prototype.updatePoints = function (points) {
     base.createDistances = function(max) {
       this.radar.createDistances(max);
     };
-    base.currentlyAnimatedPoints = currentlyAnimatedPoints;
+    base.setupPointUpdateCallback = function(callback) {
+      updateCallback = callback;
+    };
 
     return base;
   };

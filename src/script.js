@@ -4,51 +4,86 @@ let paused = false; // статус радара (на паузе, работа�
 let scale = 50; // масштаб радара
 let shift = 0;  // расстояние сдвига точек, чтобы их центровать при масштабировании
 
-let currentCoords = 0;  // текущие координаты для точек
-
-// дефолтные координаты точек
-let defaultPoints = [
+const defaultPoints = [
     { X: 100.73834818019053, Y: 80.133526305855796, id: 1, height: 4.2, status: true },
     { X: 312.04449004559928, Y: 289.090547816002868, id: 2, height: 8, status: true },
     { X: 145.450948245470364, Y: 312.23568471317653, id: 3, height: 2, status: false },
     { X: 318.5435234425365, Y: 89.462374232534, id: 4, height: 5.55, status: false }
 ];
 
+const firstMoves = [
+    { X: 100.73834818019053, Y: 80.133526305855796 },
+    { X: 120.73834818019053, Y: 81.133526305855796 },
+    { X: 110.73834818019053, Y: 110.133526305855796 },
+    { X: 110.73834818019053, Y: 90.133526305855796 }
+];
+
+const secondMoves = [
+    { X: 312.04449004559928, Y: 289.090547816002868 },
+    { X: 330.73834818019053, Y: 270.133526305855796 },
+    { X: 340.73834818019053, Y: 290.133526305855796 },
+    { X: 320.73834818019053, Y: 300.133526305855796 }
+];
+
+const thirdMoves = [
+    { X: 145.450948245470364, Y: 312.23568471317653 },
+    { X: 110.73834818019053, Y: 333.133526305855796 },
+    { X: 150.73834818019053, Y: 350.133526305855796 },
+    { X: 120.73834818019053, Y: 330.133526305855796 }
+];
+
+const fourthMoves = [
+    { X: 318.5435234425365, Y: 89.462374232534 },
+    { X: 270.73834818019053, Y: 100.133526305855796 },
+    { X: 290.73834818019053, Y: 120.133526305855796 },
+    { X: 300.73834818019053, Y: 100.133526305855796 }
+];
+
+const coords = [firstMoves, secondMoves, thirdMoves, fourthMoves];
+
 let currentPoints = defaultPoints;
 
 // остановка выполнения кода на заданное кол-во миллисекунд
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-// нормализация координат
-function getNormalizedPoints(points) {
-    return points.map(it => ({
-        ...it,
-        X: (scale * 2 * it.X) / $("#radar").width(),
-        Y: (scale * 2 * it.Y) / $("#radar").height()
-    }));
 }
 
-// денормализация координат
-function getDenormalizedPoints(points) {
-    return points.map(it => ({
-        ...it,
-        X: ($("#radar").width() * it.X) / (scale * 2),
-        Y: ($("#radar").height() * it.Y) / (scale * 2)
-    }));
+// рандомное число от 0 до max
+function random(max) {
+    return Math.round(Math.random() * max);
 }
 
-// пересчет и перерисовка точек по новому масштабу
-function calculateScale(points) {
+// нормализация координат точки со сдвигом
+function normalizePoint(point) {
+    return {
+        ...point,
+        X: (scale * 2 * point.X) / $("#radar").width() + shift,
+        Y: (scale * 2 * point.Y) / $("#radar").height() + shift
+    };
+}
+
+// денормализация координат точки
+function denormalizePoint(point) {
+    return {
+        ...point,
+        X: ($("#radar").width() * point.X) / (scale * 2),
+        Y: ($("#radar").height() * point.Y) / (scale * 2)
+    };
+}
+
+// пересчет точек по новому масштабу
+function calculateScale(points, updatedIndex) {
     scale = 50;
-    let newPoints = getNormalizedPoints(points)
-        .map(it => ({ ...it, X: it.X + shift, Y: it.Y + shift }));
 
-    scale = scale + shift;
-    newPoints = getDenormalizedPoints(newPoints);
-
-    return newPoints;
+    return points.map((it, index) => {
+        if (updatedIndex === index) {
+            const normalizedPoint = normalizePoint(it);
+            scale = scale + shift;
+            return denormalizePoint(normalizedPoint);
+        } else {
+            return it;
+        }
+    });
 }
 
 
@@ -97,7 +132,7 @@ function setPointsInfo() {
             { title: "N", checked: $("#aimNumbers").is(":checked"), value: point.id },
             { title: "B", checked: $("#azimuth").is(":checked"), value: deg },
             { title: "H", checked: $("#height").is(":checked"), value: point.height },
-            { title: "D", checked: $("#distance").is(":checked"), value: distance },            
+            { title: "D", checked: $("#distance").is(":checked"), value: distance },
             { title: "S", checked: $("#status").is(":checked"), value: point.status ? "Свой" : "Чужой" }
         ].filter(it => it.checked); // если параметр отключен - фильтруем его и не отображаем в итоге
 
@@ -163,81 +198,24 @@ function renderFormular(checked) {
 }
 
 // движение точек
-async function movePoints() {
-    // задаем координаты движения для всех точек
+async function movePoint(index) {
+    const currentCoords = random(currentPoints.length - 1);
 
-    // для первой
-    const firstMoves = [
-        { X: 100.73834818019053, Y: 80.133526305855796 },
-        { X: 120.73834818019053, Y: 81.133526305855796 },
-        { X: 110.73834818019053, Y: 110.133526305855796 },
-        { X: 110.73834818019053, Y: 90.133526305855796 }
-    ];
-
-    // для второй и тд
-    const secondMoves = [
-        { X: 312.04449004559928, Y: 289.090547816002868 },
-        { X: 330.73834818019053, Y: 270.133526305855796 },
-        { X: 340.73834818019053, Y: 290.133526305855796 },
-        { X: 320.73834818019053, Y: 300.133526305855796 }
-    ];
-
-    const thirdMoves = [
-        { X: 145.450948245470364, Y: 312.23568471317653 },
-        { X: 110.73834818019053, Y: 333.133526305855796 },
-        { X: 150.73834818019053, Y: 350.133526305855796 },
-        { X: 120.73834818019053, Y: 330.133526305855796 }
-    ];
-
-    const fourthMoves = [
-        { X: 318.5435234425365, Y: 89.462374232534 },
-        { X: 270.73834818019053, Y: 100.133526305855796 },
-        { X: 290.73834818019053, Y: 120.133526305855796 },
-        { X: 300.73834818019053, Y: 100.133526305855796 }
-    ];
-
-    // для удобства всё это кидаем в массив
-    const coords = [firstMoves, secondMoves, thirdMoves, fourthMoves];
-
-    // бесконечный цикл, движение будет всегда
-    while (true) {
-        // берем следующие координаты для каждой точки
-        // index - номер точки в массиве
-        const newPoints = [];
-        let index = 0;
-        $(".point").each(function () {
-            if (findRadar().currentlyAnimatedPoints[index]) {
-                newPoints.push({
-                    ...currentPoints[index],
-                    X: coords[index][currentCoords].X,
-                    Y: coords[index][currentCoords].Y
-                });
-            } else {
-                newPoints.push({
-                    ...currentPoints[index],
-                    X: coords[index][0].X,
-                    Y: coords[index][0].Y
-                });
-            }
-            index++;
-        });
-        
-        currentPoints = calculateScale(newPoints);
-        // чтобы точки двигались не так быстро, спим какое-то кол-во мс
-        await sleep(150);
-
-        // для пауз и стопа не надо ниче отображать
-        if (!stopped && !paused) {
-            findRadar().updatePoints(currentPoints);
-            setPointsInfo();
-            renderFormular($("#formular").is(":checked"));
-        }
-
-        // если дошли до конца массива координат обнуляем и идем заново по кругу
-        if (currentCoords++ === 3) {
-            currentCoords = 0;
-        }
+    const newPoints = currentPoints;
+    newPoints[index] = {
+        ...currentPoints[index],
+        X: coords[index][currentCoords].X,
+        Y: coords[index][currentCoords].Y
     };
+
+    currentPoints = calculateScale(newPoints, index);
+
+    // для пауз и стопа не надо ниче отображать
+    if (!stopped && !paused) {
+        findRadar().updatePoints(currentPoints);
+        setPointsInfo();
+        renderFormular($("#formular").is(":checked"));
+    }
 }
 
 // эта функция сама вызывается при загрузке страницы
@@ -245,7 +223,7 @@ $(function () {
     const radar = findRadar();
     radar.updatePoints(defaultPoints);
     radar.createDistances(scale);
-    movePoints();
+    radar.setupPointUpdateCallback(movePoint);
 });
 
 $("#pause-btn").click(function () {
@@ -314,18 +292,21 @@ $("#stop-btn").click(function () {
 // клик на масштаб 50
 $("#scale50").click(function () {
     shift = 0;
+    alreadyShifted = false;
     findRadar().createDistances(50);
 });
 
 // клик на масштаб 100
 $("#scale100").click(function () {
     shift = 50;
+    alreadyShifted = false;
     findRadar().createDistances(100);
 });
 
 // клик на масштаб 150
 $("#scale150").click(function () {
     shift = 100;
+    alreadyShifted = false;
     findRadar().createDistances(150);
 });
 
